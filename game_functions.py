@@ -36,9 +36,6 @@ def check_mousedown_events(bs_settings, screen, fields, buttons, mouse_x, mouse_
             draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y)
 
 
-
-
-
 def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
     
     for m in range(10):
