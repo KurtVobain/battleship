@@ -15,6 +15,10 @@ class Button(Sprite):
 		self.font = pygame.font.SysFont(None, 25)
 		self.activated_flag = -1
 		self.msg = ""
+		#Define size of ship player can place
+		self.ship_size = 0
+		#Define amount of ships player can place
+		self.amount_of_ships = 0
 
 
 		# Build the button's rect object and center it

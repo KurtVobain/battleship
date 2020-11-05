@@ -18,8 +18,8 @@ def run_game():
     bs_settings = Settings()
     screen = pygame.display.set_mode((bs_settings.screen_width, bs_settings.screen_height))
     pygame.display.set_caption('Battleship')
-    #Initialize player's field group
-    fields = Group()
+    #Initialize player's field list
+    fields = []
     gf.create_game_field_1(bs_settings, screen, fields)
     #Initialize ai's field group
     ai_fields = Group()
