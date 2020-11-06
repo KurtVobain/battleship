@@ -8,11 +8,10 @@ class Settings():
 		self.screen_width = 1260
 		self.screen_height = 480
 		self.bg_color = (0, 255, 255)
-
-		self.fourcages_ship = 1
-		self.threecages_ship = 2
-		self.twocages_ship = 3
-		self.onecage_ship = 4
+		#Allow to complete ship
+		self.permission = 0
+		#Which way, horizontally(1) or vertically(-1) ship should be drawn
+		self.direction_of_ship_drawing = 1
 
 		
 

@@ -11,7 +11,9 @@ class Field(Sprite):
 		# Set  the dimensions and properties of the field
 		self.width, self.height = 48, 48
 		self.field_color = (0, 0, 0)
-		self.activated_flag = 1
+		self.border_thickness = 1
+		#Show current statis of the field. 0 is empty, 1 is can't be drawb, 2 is drawn by a ship
+		self.status = 0
 
 		# Build the field's rect object and center it
 		self.rect = pygame.Rect(0, 0, self.width, self.height)
@@ -22,7 +24,7 @@ class Field(Sprite):
 
 	def draw_field(self):
 		# Draw field
-		pygame.draw.rect(self.screen, self.field_color, self.rect, self.activated_flag)
+		pygame.draw.rect(self.screen, self.field_color, self.rect, self.border_thickness)
 		# self.screen.fill(self.field_color)
 		# self.screen.blit(self.rect, (50,25))
 
