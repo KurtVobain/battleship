@@ -18,13 +18,27 @@ def check_events(bs_settings, screen, fields, buttons):
         elif event.type == pygame.KEYDOWN:
             check_keydown_events(event, bs_settings)
         # elif event.type == pygame.MOUSEMOTION:
-        #     x, y = event.pos
-        #     if ( x in range(0,48)) and (y in range(0,48)):
-        #         print("Hovering over image!")
+        #     check_mousemotion_events(event, bs_settings, screen, fields, buttons)
+            
+
+def check_mousemotion_events(event, bs_settings, screen, fields, buttons):
+    x, y = event.pos
+    for i in range(10):
+        for j in range(10):
+            for k in range(4):
+                if (( x in range(fields[i][j].rect.x, fields[i][j].rect.x+48)) and (y in range(fields[i][j].rect.y, fields[i][j].rect.y+48))
+                 and buttons[k].activated_flag == 1 and buttons[k].amount_of_ships > 0 and fields[i][j].status == 0):
+                    fields[i][j].field_color = (128, 100, 71)
+                    fields[i][j].border_thickness = 0
+            # if fields[i][j].status == 0:
+            #     fields[i][j].field_color = (0, 0, 0)
+            #     fields[i][j].border_thickness = 1
+                
 
 
 
 def check_keydown_events(event, bs_settings):
+    """Change direction_of_ship_drawing if 'Q' has been pressed"""
     if event.key == pygame.K_q:
         bs_settings.direction_of_ship_drawing *= -1
 
@@ -52,42 +66,21 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
         for j in range(10):    
             fields[m][j].rect.collidepoint(mouse_x, mouse_y)
             """Check collide of point and one cage of the field and check if cage is already used"""
-            if fields[m][j].rect.collidepoint(mouse_x, mouse_y) and fields[m][j].status !=1 :
+            if fields[m][j].rect.collidepoint(mouse_x, mouse_y) and fields[m][j].status == 0:
                 fields[m][j].field_color = (255, 10, 143)
                 fields[m][j].border_thickness = 0
                 # Status = 2 means the field is drawn
                 fields[m][j].status = 2
-                """Check if cages have alredy occupied. If it so cancel previous 'If' action"""
-                if bs_settings.direction_of_ship_drawing == 1:
-                    for k in range(1, buttons[i].ship_size):
-                        if fields[m][j+k].status != 0:
-                            fields[m][j].field_color = (0, 0, 0)
-                            fields[m][j].border_thickness = 1
-                            fields[m][j].status = 0
-                            buttons[i].amount_of_ships += 1
-                            bs_settings.permission = 0
-                            break  
-                        else:
-                            bs_settings.permission = 1
 
-                elif bs_settings.direction_of_ship_drawing == -1:
-                    for k in range(1, buttons[i].ship_size):
-                        if fields[m+k][j].status != 0:
-                            fields[m][j].field_color = (0, 0, 0)
-                            fields[m][j].border_thickness = 1
-                            fields[m][j].status = 0
-                            buttons[i].amount_of_ships += 1
-                            bs_settings.permission = 0
-                            break  
-                        else:
-                            bs_settings.permission = 1
+                check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m)
+
                 """Add necessary cages for the first cliccked cage to complete ship"""
                 if bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == 1:
                     for k in range(1, buttons[i].ship_size):
                         fields[m][j+k].field_color = (255, 10, 143)
                         fields[m][j+k].border_thickness = 0
                         fields[m][j+k].status = 2
-                elif bs_settings.direction_of_ship_drawing == -1:
+                elif bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == -1:
                     for k in range(1, buttons[i].ship_size):
                         fields[m+k][j].field_color = (255, 10, 143)
                         fields[m+k][j].border_thickness = 0
@@ -96,7 +89,31 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
                 buttons[i].amount_of_ships -= 1
                 bs_settings.permission = 0
                 
+def check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m):
+    """Check if cages have alredy occupied. If it so cancel previous 'If' action"""
+    if bs_settings.direction_of_ship_drawing == 1:
+        for k in range(1, buttons[i].ship_size):
+            if fields[m][j+k].status != 0:
+                fields[m][j].field_color = (0, 0, 0)
+                fields[m][j].border_thickness = 1
+                fields[m][j].status = 0
+                buttons[i].amount_of_ships += 1
+                bs_settings.permission = 0
+                break  
+            else:
+                bs_settings.permission = 1
 
+    elif bs_settings.direction_of_ship_drawing == -1:
+        for k in range(1, buttons[i].ship_size):
+            if fields[m+k][j].status != 0:
+                fields[m][j].field_color = (0, 0, 0)
+                fields[m][j].border_thickness = 1
+                fields[m][j].status = 0
+                buttons[i].amount_of_ships += 1
+                bs_settings.permission = 0
+                break  
+            else:
+                bs_settings.permission = 1
 
 
 
