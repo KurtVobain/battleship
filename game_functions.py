@@ -17,8 +17,8 @@ def check_events(bs_settings, screen, fields, buttons):
             check_mousedown_events(bs_settings, screen, fields, buttons,  mouse_x, mouse_y)
         elif event.type == pygame.KEYDOWN:
             check_keydown_events(event, bs_settings)
-        # elif event.type == pygame.MOUSEMOTION:
-        #     check_mousemotion_events(event, bs_settings, screen, fields, buttons)
+        elif event.type == pygame.MOUSEMOTION:
+            check_mousemotion_events(event, bs_settings, screen, fields, buttons)
             
 
 def check_mousemotion_events(event, bs_settings, screen, fields, buttons):
@@ -29,7 +29,7 @@ def check_mousemotion_events(event, bs_settings, screen, fields, buttons):
                 if (( x in range(fields[i][j].rect.x, fields[i][j].rect.x+48)) and (y in range(fields[i][j].rect.y, fields[i][j].rect.y+48))
                  and buttons[k].activated_flag == 1 and buttons[k].amount_of_ships > 0 and fields[i][j].status == 0):
                     fields[i][j].field_color = (128, 100, 71)
-                    fields[i][j].border_thickness = 0
+                    fields[i][j].border_thickness = 0   
             # if fields[i][j].status == 0:
             #     fields[i][j].field_color = (0, 0, 0)
             #     fields[i][j].border_thickness = 1
@@ -49,10 +49,11 @@ def check_mousedown_events(bs_settings, screen, fields, buttons, mouse_x, mouse_
         if buttons[i].rect.collidepoint(mouse_x, mouse_y):
             #Change flag to track it's condition
             buttons[i].activated_flag *= -1
+            buttons[i].button_color = (255, 0, 0)
             #Set other buttons flags to -1, cause only one button per time can be active
-            buttons[i-1].activated_flag = -1
-            buttons[i-2].activated_flag = -1
-            buttons[i-3].activated_flag = -1
+            for j in range(1, 4):
+                buttons[i-j].activated_flag = -1
+                buttons[i-j].button_color = (0, 255, 0)
             print('activated_flag = ', buttons[i].activated_flag)
         #Check and call function to draw ship 
         if buttons[i].activated_flag == 1 and buttons[i].amount_of_ships > 0:
@@ -69,7 +70,7 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
             if fields[m][j].rect.collidepoint(mouse_x, mouse_y) and fields[m][j].status == 0:
                 fields[m][j].field_color = (255, 10, 143)
                 fields[m][j].border_thickness = 0
-                # Status = 2 means the field is drawn
+                # Status = 2 means the field is drawn by ship
                 fields[m][j].status = 2
 
                 check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m)
@@ -80,40 +81,111 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
                         fields[m][j+k].field_color = (255, 10, 143)
                         fields[m][j+k].border_thickness = 0
                         fields[m][j+k].status = 2
+                    
+                    
                 elif bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == -1:
                     for k in range(1, buttons[i].ship_size):
                         fields[m+k][j].field_color = (255, 10, 143)
                         fields[m+k][j].border_thickness = 0
                         fields[m+k][j].status = 2
 
+                """Surround ship for escaping collisions"""
+                if bs_settings.permission == 1:
+                    surround_ship(bs_settings, screen, fields, buttons, i, j, m)
+
+                
                 buttons[i].amount_of_ships -= 1
                 bs_settings.permission = 0
-                
-def check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m):
-    """Check if cages have alredy occupied. If it so cancel previous 'If' action"""
+
+def surround_ship(bs_settings, screen, fields, buttons, i, j, m):
+    """Surround ship by non-active fileds for ships cant be palced close to each other"""
     if bs_settings.direction_of_ship_drawing == 1:
-        for k in range(1, buttons[i].ship_size):
-            if fields[m][j+k].status != 0:
-                fields[m][j].field_color = (0, 0, 0)
-                fields[m][j].border_thickness = 1
-                fields[m][j].status = 0
-                buttons[i].amount_of_ships += 1
-                bs_settings.permission = 0
-                break  
-            else:
-                bs_settings.permission = 1
+        #Surround by x coordinate
+        for jteration in range(-1, 2, 2):
+            for iteration in range(-1, buttons[i].ship_size+1):
+                #try if ship's surronding out of game field
+                try:
+                    if j+iteration>= 0 and m+jteration >= 0:
+                        fields[m+jteration][j+iteration].field_color = (244, 123, 65)
+                        fields[m+jteration][j+iteration].border_thickness = 0
+                        fields[m+jteration][j+iteration].status = 1
+                except IndexError:
+                    break
+        #Surround by y coordinate
+        for iteration in range(-1, buttons[i].ship_size+1, buttons[i].ship_size+1):
+            #try if ship's surronding out of game field
+            try: 
+                if j+iteration>= 0:
+                    fields[m][j+iteration].field_color = (244, 123, 65)
+                    fields[m][j+iteration].border_thickness = 0
+                    fields[m][j+iteration].status = 1
+            except IndexError:
+                    break
 
     elif bs_settings.direction_of_ship_drawing == -1:
-        for k in range(1, buttons[i].ship_size):
-            if fields[m+k][j].status != 0:
-                fields[m][j].field_color = (0, 0, 0)
-                fields[m][j].border_thickness = 1
-                fields[m][j].status = 0
-                buttons[i].amount_of_ships += 1
-                bs_settings.permission = 0
-                break  
-            else:
-                bs_settings.permission = 1
+        #Surround by y coordinate
+        for jteration in range(-1, 2, 2):
+            for iteration in range(-1, buttons[i].ship_size+1):
+                #try if ship's surronding out of game field
+                try:
+                    if m+iteration >= 0 and j+jteration >= 0:
+                        fields[m+iteration][j+jteration].field_color = (244, 123, 65)
+                        fields[m+iteration][j+jteration].border_thickness = 0
+                        fields[m+iteration][j+jteration].status = 1
+                except IndexError:
+                    break
+        #Surround by x coordinate
+        for iteration in range(-1, buttons[i].ship_size+1, buttons[i].ship_size+1):
+            #try if ship's surronding out of game field
+            try:
+                if m+iteration >= 0:
+                    fields[m+iteration][j].field_color = (244, 123, 65)
+                    fields[m+iteration][j].border_thickness = 0
+                    fields[m+iteration][j].status = 1
+            except IndexError:
+                    break
+
+
+
+    
+            
+def check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m):
+    """Check if cages have alredy occupied. If it so cancel previous 'If' action"""
+    if buttons[i].ship_size == 1:
+        bs_settings.permission = 1
+    #try if ship out of game field
+    try:
+        if bs_settings.direction_of_ship_drawing == 1: 
+            for k in range(1, buttons[i].ship_size):
+                if fields[m][j+k].status != 0:
+                    fields[m][j].field_color = (0, 0, 0)
+                    fields[m][j].border_thickness = 1
+                    fields[m][j].status = 0
+                    buttons[i].amount_of_ships += 1
+                    bs_settings.permission = 0
+                    break  
+                else:
+                    bs_settings.permission = 1
+
+
+        elif bs_settings.direction_of_ship_drawing == -1:
+            for k in range(1, buttons[i].ship_size):
+                if fields[m+k][j].status != 0:
+                    fields[m][j].field_color = (0, 0, 0)
+                    fields[m][j].border_thickness = 1
+                    fields[m][j].status = 0
+                    buttons[i].amount_of_ships += 1
+                    bs_settings.permission = 0
+                    break  
+                else:
+                    bs_settings.permission = 1
+    except IndexError:
+        bs_settings.permission = 0
+        fields[m][j].field_color = (0, 0, 0)
+        fields[m][j].border_thickness = 1
+        fields[m][j].status = 0
+        buttons[i].amount_of_ships += 1
+        bs_settings.permission = 0
 
 
 
