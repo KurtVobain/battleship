@@ -15,6 +15,8 @@ if getattr(sys, 'frozen', False):
 
 def run_game():
     pygame.init()
+
+    FPS = pygame.time.Clock()
     
     bs_settings = Settings()
     screen = pygame.display.set_mode((bs_settings.screen_width, bs_settings.screen_height))
@@ -38,9 +40,10 @@ def run_game():
     while True:
     	if bs_settings.order == 1:
     		gf.check_events(bs_settings, screen, fields, ai_fields, buttons)
-    	elif bs_settings.order == 0:
+    	elif bs_settings.order == -1:
     		ai_gf.ai_shoot_action(bs_settings, screen, fields, ai_fields)
     	gf.update_screen(bs_settings, screen, fields, ai_fields, buttons)
+    	FPS.tick(15)
 
       
         

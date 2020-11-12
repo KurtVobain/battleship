@@ -50,7 +50,7 @@ def check_mousedown_events(bs_settings, screen, fields, ai_fields, buttons, mous
     #Make shoot action if all player's ans ai's ships are on the field
     elif buttons[0].amount_of_ships+buttons[1].amount_of_ships+buttons[2].amount_of_ships+buttons[3].amount_of_ships == 0:
         shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y)
-        bs_settings.order = 0
+        #bs_settings.order = 0
         
 
 
@@ -58,9 +58,25 @@ def shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y):
     for m in range(10):
         for j in range(10):
             if ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and ai_fields[m][j].status == 2:
-                ai_fields[m][j].status = 1
+                ai_fields[m][j].status = 3
                 ai_fields[m][j].field_color = (0, 0, 0)
+                #Turn continue if if field was with a ship  
+                bs_settings.order *= 1
+            elif ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and (ai_fields[m][j].status == 0 or ai_fields[m][j].status == 1 ):
+                #draw_shooted_field(bs_settings, screen, ai_fields, m, j)
+                ai_fields[m][j].status = 3
+                ai_fields[m][j].field_color = (100, 200, 50)
+                ai_fields[m][j].border_thickness = 5
+                #Order changes
+                bs_settings.order *= -1
 
+
+# def draw_shooted_field(bs_settings, screen, ai_fields, m, j):
+#     color = (0,0,0)
+#     rect = pygame.Rect(0, 0, 5, 5)
+#     rect.centerx = ai_fields[m][j].rect.centerx
+#     pygame.draw.rect(ai_fields[m][j].rect, color, rect)
+    
 
 
 
@@ -125,8 +141,8 @@ def surround_ship(bs_settings, screen, fields, buttons, i, j, m):
                 #try if ship's surronding out of game field
                 try:
                     if j+iteration>= 0 and m+jteration >= 0:
-                        fields[m+jteration][j+iteration].field_color = (244, 123, 65)
-                        fields[m+jteration][j+iteration].border_thickness = 0
+                        #fields[m+jteration][j+iteration].field_color = (244, 123, 65)
+                        #fields[m+jteration][j+iteration].border_thickness = 0
                         fields[m+jteration][j+iteration].status = 1
                 except IndexError:
                     break
@@ -135,8 +151,8 @@ def surround_ship(bs_settings, screen, fields, buttons, i, j, m):
             #try if ship's surronding out of game field
             try: 
                 if j+iteration>= 0:
-                    fields[m][j+iteration].field_color = (244, 123, 65)
-                    fields[m][j+iteration].border_thickness = 0
+                    #fields[m][j+iteration].field_color = (244, 123, 65)
+                    #fields[m][j+iteration].border_thickness = 0
                     fields[m][j+iteration].status = 1
             except IndexError:
                     break
@@ -148,8 +164,8 @@ def surround_ship(bs_settings, screen, fields, buttons, i, j, m):
                 #try if ship's surronding out of game field
                 try:
                     if m+iteration >= 0 and j+jteration >= 0:
-                        fields[m+iteration][j+jteration].field_color = (244, 123, 65)
-                        fields[m+iteration][j+jteration].border_thickness = 0
+                        #fields[m+iteration][j+jteration].field_color = (244, 123, 65)
+                        #fields[m+iteration][j+jteration].border_thickness = 0
                         fields[m+iteration][j+jteration].status = 1
                 except IndexError:
                     break
@@ -158,8 +174,8 @@ def surround_ship(bs_settings, screen, fields, buttons, i, j, m):
             #try if ship's surronding out of game field
             try:
                 if m+iteration >= 0:
-                    fields[m+iteration][j].field_color = (244, 123, 65)
-                    fields[m+iteration][j].border_thickness = 0
+                    #fields[m+iteration][j].field_color = (244, 123, 65)
+                    #fields[m+iteration][j].border_thickness = 0
                     fields[m+iteration][j].status = 1
             except IndexError:
                     break

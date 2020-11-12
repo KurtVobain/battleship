@@ -12,7 +12,7 @@ class Settings():
 		self.permission = 0
 		#Which way, horizontally(1) or vertically(-1) ship should be drawn
 		self.direction_of_ship_drawing = 1
-		#Order of a move. 1 - player, 0 - ai
+		#Order of a move. 1 - player, -1 - ai
 		self.order = 1
 
 		

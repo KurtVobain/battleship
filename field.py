@@ -12,7 +12,7 @@ class Field(Sprite):
 		self.width, self.height = 48, 48
 		self.field_color = (0, 0, 0)
 		self.border_thickness = 1
-		#Show current statis of the field. 0 is empty, 1 is can't be drawb, 2 is drawn by a ship
+		#Show current statis of the field. 0 is empty, 1 is can't be drawn, 2 is drawn by a ship. 3 is shooted
 		self.status = 0
 
 		# Build the field's rect object and center it

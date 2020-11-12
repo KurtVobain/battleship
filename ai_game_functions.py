@@ -22,7 +22,7 @@ def draw_ai_ship(bs_settings, screen, ai_fields, buttons):
 def ai_shoot_action(bs_settings, screen, fields, ai_fields):
 	mouse_x, mouse_y = random.randint(781,1260), random.randint(1,479)
 	gf.shoot_action(bs_settings, screen, fields, mouse_x, mouse_y)
-	bs_settings.order = 1
+	#bs_settings.order = 1
 
 
 
