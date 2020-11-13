@@ -14,6 +14,12 @@ class Settings():
 		self.direction_of_ship_drawing = 1
 		#Order of a move. 1 - player, -1 - ai
 		self.order = 1
+		#Draw status of the game
+		self.status = ['Place your ships on the right field', 'Make a shoot to the left field', 'Enemy is shooting']
+
+		self.sound_of_miss = pygame.mixer.Sound(os.path.join(os.path.abspath('sound'),'miss1.wav'))
+		self.sound_of_hit = pygame.mixer.Sound(os.path.join(os.path.abspath('sound'),'explosion.wav'))
+
 
 		
 

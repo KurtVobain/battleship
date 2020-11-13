@@ -6,7 +6,6 @@ from pygame.sprite import Group
 from field import Field
 from button import Button
 
-
 def check_events(bs_settings, screen, fields, ai_fields, buttons):
     """Respond to keypresses and mouse ivents"""
     for event in pygame.event.get():
@@ -50,7 +49,11 @@ def check_mousedown_events(bs_settings, screen, fields, ai_fields, buttons, mous
     #Make shoot action if all player's ans ai's ships are on the field
     elif buttons[0].amount_of_ships+buttons[1].amount_of_ships+buttons[2].amount_of_ships+buttons[3].amount_of_ships == 0:
         shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y)
-        #bs_settings.order = 0
+        bs_settings.phase = 1
+
+
+        
+    
         
 
 
@@ -58,26 +61,21 @@ def shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y):
     for m in range(10):
         for j in range(10):
             if ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and ai_fields[m][j].status == 2:
+                #Play hit sound
+                bs_settings.sound_of_hit.play()
                 ai_fields[m][j].status = 3
                 ai_fields[m][j].field_color = (0, 0, 0)
-                #Turn continue if if field was with a ship  
-                bs_settings.order *= 1
+                ai_fields[m][j].border_thickness = 0 
+
             elif ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and (ai_fields[m][j].status == 0 or ai_fields[m][j].status == 1 ):
-                #draw_shooted_field(bs_settings, screen, ai_fields, m, j)
+                #Play miss sound
+                bs_settings.sound_of_miss.play()
+
                 ai_fields[m][j].status = 3
-                ai_fields[m][j].field_color = (100, 200, 50)
+                ai_fields[m][j].field_color = (252, 0, 13)
                 ai_fields[m][j].border_thickness = 5
                 #Order changes
                 bs_settings.order *= -1
-
-
-# def draw_shooted_field(bs_settings, screen, ai_fields, m, j):
-#     color = (0,0,0)
-#     rect = pygame.Rect(0, 0, 5, 5)
-#     rect.centerx = ai_fields[m][j].rect.centerx
-#     pygame.draw.rect(ai_fields[m][j].rect, color, rect)
-    
-
 
 
 
@@ -94,17 +92,20 @@ def point_and_button_collision(bs_settings, screen, fields, buttons, mouse_x, mo
             print('activated_flag = ', buttons[i].activated_flag)
         #Check and call function to draw ship 
         if buttons[i].activated_flag == 1 and buttons[i].amount_of_ships > 0:
-            draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y)
+            border_thickness = 0
+            color = (154, 152, 152)
+            draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color, border_thickness)
 
 
-def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
-    #bs_settings.permission = 0
+
+def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color=(0,0,0), border_thickness=1):
+
     for m in range(10):
         for j in range(10):    
             """Check collide of point and one cage of the field and check if cage is already used"""
             if fields[m][j].rect.collidepoint(mouse_x, mouse_y) and fields[m][j].status == 0:
-                fields[m][j].field_color = (255, 10, 143)
-                fields[m][j].border_thickness = 0
+                fields[m][j].field_color = color #(154, 152, 152)
+                fields[m][j].border_thickness = border_thickness 
                 # Status = 2 means the field is drawn by ship
                 fields[m][j].status = 2
 
@@ -113,15 +114,15 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y):
                 """Add necessary cages for the first cliccked cage to complete ship"""
                 if bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == 1:
                     for k in range(1, buttons[i].ship_size):
-                        fields[m][j+k].field_color = (255, 10, 143)
-                        fields[m][j+k].border_thickness = 0
+                        fields[m][j+k].field_color = color 
+                        fields[m][j+k].border_thickness = border_thickness 
                         fields[m][j+k].status = 2
                     
                     
                 elif bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == -1:
                     for k in range(1, buttons[i].ship_size):
-                        fields[m+k][j].field_color = (255, 10, 143)
-                        fields[m+k][j].border_thickness = 0
+                        fields[m+k][j].field_color = color 
+                        fields[m+k][j].border_thickness = border_thickness
                         fields[m+k][j].status = 2
 
                 """Surround ship for escaping collisions"""
@@ -241,7 +242,8 @@ def update_screen(bs_settings, screen, fields, ai_fields, buttons):
     #Draw buttons
     for one_button in buttons:
         one_button.draw_button()
-    
+
+
 
     #Make the most recently drawn visible
     pygame.display.flip()
