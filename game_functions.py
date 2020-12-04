@@ -60,23 +60,35 @@ def check_mousedown_events(bs_settings, screen, fields, ai_fields, buttons, mous
 def shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y):
     for m in range(10):
         for j in range(10):
-            if ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and ai_fields[m][j].status == 2:
-                #Play hit sound
-                bs_settings.sound_of_hit.play()
-                ai_fields[m][j].status = 3
-                ai_fields[m][j].field_color = (0, 0, 0)
-                ai_fields[m][j].border_thickness = 0 
+            for one_ship in bs_settings.ships:
+                """Delete empty lists from ships' list"""
+                if not one_ship:
+                    bs_settings.ships.remove(one_ship)
 
-            elif ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and (ai_fields[m][j].status == 0 or ai_fields[m][j].status == 1 ):
-                #Play miss sound
-                bs_settings.sound_of_miss.play()
+                """Check if point collide with field and the field is in ships list"""
+                if ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and ai_fields[m][j] in one_ship and ai_fields[m][j].status == 2: 
+                    #Play hit sound
+                    bs_settings.sound_of_hit.play()
+                    ai_fields[m][j].status = 3
+                    ai_fields[m][j].field_color = (0, 0, 0)
+                    ai_fields[m][j].border_thickness = 0
 
-                ai_fields[m][j].status = 3
-                ai_fields[m][j].field_color = (252, 0, 13)
-                ai_fields[m][j].border_thickness = 5
-                #Order changes
-                bs_settings.order *= -1
+                    #Remove filed from ship
+                    one_ship.remove(ai_fields[m][j])
+                    #If ship has no fileds execute surround_ship function
+                    if len(one_ship) == 4:
+                        surround_ship(bs_settings, screen, ai_fields, one_ship[0], one_ship[1], one_ship[3], one_ship[2], 5, (252,0,13))
 
+                #If field is not in ships list activate 'miss' actions
+                elif ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and (ai_fields[m][j].status == 0 or ai_fields[m][j].status == 1 ):
+                    #Play miss sound
+                    bs_settings.sound_of_miss.play()
+
+                    ai_fields[m][j].status = 3
+                    ai_fields[m][j].field_color = (252, 0, 13)
+                    ai_fields[m][j].border_thickness = 5
+                    #Order changes
+                    bs_settings.order *= -1
 
 
 def point_and_button_collision(bs_settings, screen, fields, buttons, mouse_x, mouse_y):
@@ -93,12 +105,14 @@ def point_and_button_collision(bs_settings, screen, fields, buttons, mouse_x, mo
         #Check and call function to draw ship 
         if buttons[i].activated_flag == 1 and buttons[i].amount_of_ships > 0:
             border_thickness = 0
-            color = (154, 152, 152)
+            color = (255, 239, 0)
             draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color, border_thickness)
 
 
 
 def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color=(0,0,0), border_thickness=1):
+    #The list store fields of one ship and list itself store in ships from settings.py
+    new_ship = []
 
     for m in range(10):
         for j in range(10):    
@@ -108,75 +122,107 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color=(
                 fields[m][j].border_thickness = border_thickness 
                 # Status = 2 means the field is drawn by ship
                 fields[m][j].status = 2
+               
 
                 check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m)
 
                 """Add necessary cages for the first cliccked cage to complete ship"""
                 if bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == 1:
+                    #Append to the list ship's size
+                    new_ship.append(buttons[i].ship_size)
+                    #Append to the list direction of the drawling of the ship
+                    new_ship.append(bs_settings.direction_of_ship_drawing)
+                    #Append to the list coordinates of the firs ship's field
+                    new_ship.append(m)
+                    new_ship.append(j)
+                    #Append to the list field of the ship
+                    new_ship.append(fields[m][j])
+
                     for k in range(1, buttons[i].ship_size):
                         fields[m][j+k].field_color = color 
                         fields[m][j+k].border_thickness = border_thickness 
                         fields[m][j+k].status = 2
-                    
-                    
+                        #Append to the list field of the ship
+                        new_ship.append(fields[m][j+k])
+
+                     
                 elif bs_settings.permission == 1 and bs_settings.direction_of_ship_drawing == -1:
+                    #Append to the list ship's size
+                    new_ship.append(buttons[i].ship_size)
+                    #Append to the list direction of the drawling of the ship
+                    new_ship.append(bs_settings.direction_of_ship_drawing)
+                    #Append to the ships list coordinates of the firs ship's field
+                    new_ship.append(m)
+                    new_ship.append(j)
+                    #Append to the list field of the ship
+                    new_ship.append(fields[m][j])
+                    
                     for k in range(1, buttons[i].ship_size):
                         fields[m+k][j].field_color = color 
                         fields[m+k][j].border_thickness = border_thickness
                         fields[m+k][j].status = 2
+                        #Append to the list field of the ship
+                        new_ship.append(fields[m+k][j])
+
+                    
+                
 
                 """Surround ship for escaping collisions"""
                 if bs_settings.permission == 1:
-                    surround_ship(bs_settings, screen, fields, buttons, i, j, m)
+                    surround_ship(bs_settings, screen, fields, buttons[i].ship_size, bs_settings.direction_of_ship_drawing, j, m)
 
                 
                 buttons[i].amount_of_ships -= 1
                 bs_settings.permission = 0
+    #Append to the ships list size and fields of new ship 
+    bs_settings.ships.append(new_ship)
 
-def surround_ship(bs_settings, screen, fields, buttons, i, j, m):
-    """Surround ship by non-active fileds for ships cant be palced close to each other"""
-    if bs_settings.direction_of_ship_drawing == 1:
+def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_drawing, j, m, border_thickness = 1, field_color = (0,0,0)):
+    """Surround ship by non-active fileds for ships cant be placed close to each other.
+        Function get postion of the first field of the ship, size and direction and surround ship according to them 
+    """
+    if direction_of_ship_drawing == 1:
         #Surround by x coordinate
         for jteration in range(-1, 2, 2):
-            for iteration in range(-1, buttons[i].ship_size+1):
+            for iteration in range(-1, ship_size+1):
                 #try if ship's surronding out of game field
                 try:
                     if j+iteration>= 0 and m+jteration >= 0:
-                        #fields[m+jteration][j+iteration].field_color = (244, 123, 65)
-                        #fields[m+jteration][j+iteration].border_thickness = 0
+                        fields[m+jteration][j+iteration].border_thickness = border_thickness
+                        fields[m+jteration][j+iteration].field_color = field_color
                         fields[m+jteration][j+iteration].status = 1
                 except IndexError:
                     break
         #Surround by y coordinate
-        for iteration in range(-1, buttons[i].ship_size+1, buttons[i].ship_size+1):
+        for iteration in range(-1, ship_size+1, ship_size+1):
             #try if ship's surronding out of game field
             try: 
                 if j+iteration>= 0:
-                    #fields[m][j+iteration].field_color = (244, 123, 65)
-                    #fields[m][j+iteration].border_thickness = 0
+                    fields[m][j+iteration].border_thickness = border_thickness
+                    fields[m][j+iteration].field_color = field_color
                     fields[m][j+iteration].status = 1
             except IndexError:
                     break
 
-    elif bs_settings.direction_of_ship_drawing == -1:
+    elif direction_of_ship_drawing == -1:
         #Surround by y coordinate
         for jteration in range(-1, 2, 2):
-            for iteration in range(-1, buttons[i].ship_size+1):
+            for iteration in range(-1, ship_size+1):
                 #try if ship's surronding out of game field
                 try:
                     if m+iteration >= 0 and j+jteration >= 0:
-                        #fields[m+iteration][j+jteration].field_color = (244, 123, 65)
-                        #fields[m+iteration][j+jteration].border_thickness = 0
+                        fields[m+iteration][j+jteration].border_thickness = border_thickness
+                        fields[m+iteration][j+jteration].field_color = field_color
                         fields[m+iteration][j+jteration].status = 1
                 except IndexError:
                     break
         #Surround by x coordinate
-        for iteration in range(-1, buttons[i].ship_size+1, buttons[i].ship_size+1):
+        for iteration in range(-1, ship_size+1, ship_size+1):
             #try if ship's surronding out of game field
             try:
                 if m+iteration >= 0:
-                    #fields[m+iteration][j].field_color = (244, 123, 65)
-                    #fields[m+iteration][j].border_thickness = 0
+                    fields[m+iteration][j].border_thickness = border_thickness
+                    fields[m+iteration][j].field_color = field_color
                     fields[m+iteration][j].status = 1
             except IndexError:
                     break
@@ -278,38 +324,18 @@ def create_buttons(bs_settings, screen):
     #Initialize buttons
     buttons = []
 
-    four_ship_button = Button(bs_settings, screen)
-    four_ship_button.rect.x = 550
-    four_ship_button.rect.y = 20
-    four_ship_button.msg = "Battleship"
-    four_ship_button.ship_size = 4
-    four_ship_button.amount_of_ships = 1*2
-    buttons.append(four_ship_button)
-
-    three_ship_button = Button(bs_settings, screen)
-    three_ship_button.rect.x = 550
-    three_ship_button.rect.y = 60
-    three_ship_button.msg = "Cruiser"
-    three_ship_button.ship_size = 3
-    three_ship_button.amount_of_ships = 2*2
-    buttons.append(three_ship_button)
-
-
-    two_ship_button = Button(bs_settings, screen)
-    two_ship_button.rect.x = 550
-    two_ship_button.rect.y = 100
-    two_ship_button.msg = "Submarine"
-    two_ship_button.ship_size = 2
-    two_ship_button.amount_of_ships = 3*2
-    buttons.append(two_ship_button)
-
-    one_ship_button = Button(bs_settings, screen)
-    one_ship_button.rect.x = 550
-    one_ship_button.rect.y = 140
-    one_ship_button.msg = "Destroyer"
-    one_ship_button.ship_size = 1
-    one_ship_button.amount_of_ships = 4*2
-    buttons.append(one_ship_button)
+    for new_button in bs_settings.buttons_settings.keys():
+        value = bs_settings.buttons_settings.get(new_button)\
+        #Initialize new Button object
+        new_button = Button(bs_settings, screen, value[5],  18)
+        """Define unique values of the new button"""
+        new_button.rect.centerx = value[0]
+        new_button.rect.y = value[1]
+        new_button.msg = value[2]
+        new_button.ship_size = value[3]
+        new_button.amount_of_ships = value[4]
+        #Add the new button to buttons list
+        buttons.append(new_button)
 
     return buttons
             

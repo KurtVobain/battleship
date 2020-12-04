@@ -2,14 +2,15 @@ import pygame.font
 from pygame.sprite import Sprite
 
 class Button(Sprite):
-	def __init__(self, ai_settings, screen):
+	def __init__(self, ai_settings, screen, width, height):
 		super(Button, self).__init__()
 		"""Initialize button attributes."""
 		self.screen = screen
 		self.screen_rect = screen.get_rect()
 
 		# Set  the dimensions and properties of the button
-		self.width, self.height = 160, 20
+		#self.width, self.height = 160, 20
+		self.width, self.height = width, height
 		self.button_color = (0, 255, 0)
 		self.text_color = (255, 255, 255)
 		self.font = pygame.font.SysFont(None, 25)

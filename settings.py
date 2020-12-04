@@ -20,6 +20,16 @@ class Settings():
 		self.sound_of_miss = pygame.mixer.Sound(os.path.join(os.path.abspath('sound'),'miss1.wav'))
 		self.sound_of_hit = pygame.mixer.Sound(os.path.join(os.path.abspath('sound'),'explosion.wav'))
 
+		"""Dictionary of button's settings"""
+		# Firs  - x position, second - y position, third - button's layout, fourth - size, fifth - amount of ships, sixth - width of button
+		self.buttons_settings = {'four-deck':[630, 20, 'Battleship', 4, 2, 160],
+								'three-deck':[630, 60, 'Cruiser', 3, 4, 120],
+								'two-deck':[630, 100, 'Submarine', 2, 6, 80],
+								'one-deck':[630, 140, 'Destroyer', 1, 8, 40]}
+
+		#First - size of the ship, second - direction of srawing, third, fourth - x and y coordinate, other - fileds of current ship
+		self.ships = []
+
 
 		
 
