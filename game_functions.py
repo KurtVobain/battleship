@@ -1,10 +1,13 @@
 import pygame
 import sys
+import os
 from time import sleep
 from pygame.sprite import Group
 
 from field import Field
 from button import Button
+
+import pygame.font
 
 def check_events(bs_settings, screen, fields, ai_fields, buttons):
     """Respond to keypresses and mouse ivents"""
@@ -48,7 +51,7 @@ def check_mousedown_events(bs_settings, screen, fields, ai_fields, buttons, mous
         point_and_button_collision(bs_settings, screen, fields, buttons, mouse_x, mouse_y)
     #Make shoot action if all player's ans ai's ships are on the field
     elif buttons[0].amount_of_ships+buttons[1].amount_of_ships+buttons[2].amount_of_ships+buttons[3].amount_of_ships == 0:
-        shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y)
+        shoot_action(bs_settings, screen, ai_fields, bs_settings.ships[0], mouse_x, mouse_y)
         bs_settings.phase = 1
 
 
@@ -57,14 +60,14 @@ def check_mousedown_events(bs_settings, screen, fields, ai_fields, buttons, mous
         
 
 
-def shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y):
+def shoot_action(bs_settings, screen, ai_fields, ships, mouse_x, mouse_y):
+
     for m in range(10):
         for j in range(10):
-            for one_ship in bs_settings.ships:
-                """Delete empty lists from ships' list"""
+            for one_ship in ships:
+                """Delete empty lists from ships' list """
                 if not one_ship:
-                    bs_settings.ships.remove(one_ship)
-
+                    ships.remove(one_ship)
                 """Check if point collide with field and the field is in ships list"""
                 if ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and ai_fields[m][j] in one_ship and ai_fields[m][j].status == 2: 
                     #Play hit sound
@@ -76,8 +79,11 @@ def shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y):
                     #Remove filed from ship
                     one_ship.remove(ai_fields[m][j])
                     #If ship has no fileds execute surround_ship function
-                    if len(one_ship) == 4:
+                    if len(one_ship) <= 4:
                         surround_ship(bs_settings, screen, ai_fields, one_ship[0], one_ship[1], one_ship[3], one_ship[2], 5, (252,0,13))
+                        #Delete killed lists from ships' list
+                        ships.remove(one_ship)
+                    
 
                 #If field is not in ships list activate 'miss' actions
                 elif ai_fields[m][j].rect.collidepoint(mouse_x, mouse_y) and (ai_fields[m][j].status == 0 or ai_fields[m][j].status == 1 ):
@@ -90,27 +96,27 @@ def shoot_action(bs_settings, screen, ai_fields, mouse_x, mouse_y):
                     #Order changes
                     bs_settings.order *= -1
 
-
 def point_and_button_collision(bs_settings, screen, fields, buttons, mouse_x, mouse_y):
     for i in range(4):
-        if buttons[i].rect.collidepoint(mouse_x, mouse_y):
+        if buttons[i].rect.collidepoint(mouse_x, mouse_y) and buttons[i].activated_flag == -1:
             #Change flag to track it's condition
             buttons[i].activated_flag *= -1
-            buttons[i].button_color = (255, 0, 0)
+            buttons[i].scale_button(2)
+            buttons[i].blitme()
             #Set other buttons flags to -1, cause only one button per time can be active
             for j in range(1, 4):
                 buttons[i-j].activated_flag = -1
                 buttons[i-j].button_color = (0, 255, 0)
-            print('activated_flag = ', buttons[i].activated_flag)
+            
         #Check and call function to draw ship 
         if buttons[i].activated_flag == 1 and buttons[i].amount_of_ships > 0:
             border_thickness = 0
             color = (255, 239, 0)
-            draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color, border_thickness)
+            draw_ship(bs_settings, screen, fields, buttons, bs_settings.ships[1], i, mouse_x, mouse_y, color, border_thickness)
 
 
 
-def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color=(0,0,0), border_thickness=1):
+def draw_ship(bs_settings, screen, fields, buttons, ships, i, mouse_x, mouse_y, color=(0,0,0), border_thickness=1):
     #The list store fields of one ship and list itself store in ships from settings.py
     new_ship = []
 
@@ -175,7 +181,7 @@ def draw_ship(bs_settings, screen, fields, buttons, i, mouse_x, mouse_y, color=(
                 buttons[i].amount_of_ships -= 1
                 bs_settings.permission = 0
     #Append to the ships list size and fields of new ship 
-    bs_settings.ships.append(new_ship)
+    ships.append(new_ship)
 
 def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_drawing, j, m, border_thickness = 1, field_color = (0,0,0)):
     """Surround ship by non-active fileds for ships cant be placed close to each other.
@@ -273,9 +279,13 @@ def check_of_the_free_space(bs_settings, screen, fields, buttons, i, j, m):
 
 
 
-def update_screen(bs_settings, screen, fields, ai_fields, buttons):
+def update_screen(bs_settings, screen, fields, ai_fields, buttons, layout):
     #Redraw the screen during each pass thruogh the loop
     screen.fill(bs_settings.bg_color)
+
+    if bs_settings.end_game == 1:
+        layout.draw_layout()
+
     
     #Draw player's field
     for i in fields:
@@ -287,7 +297,12 @@ def update_screen(bs_settings, screen, fields, ai_fields, buttons):
             one_ai_field.draw_field()
     #Draw buttons
     for one_button in buttons:
-        one_button.draw_button()
+        one_button.blitme()
+    prep_text(bs_settings, screen, 'Game rules:', 380)
+    prep_text(bs_settings, screen, '1. Place your ships on the right field.', 400)
+    prep_text(bs_settings, screen, '   Use the Q key to cahange their position', 420)
+    prep_text(bs_settings, screen, "2. Destroy all of your opponent's ships", 440)
+    prep_text(bs_settings, screen, "   by shooting at the left field", 460)
 
 
 
@@ -324,22 +339,61 @@ def create_buttons(bs_settings, screen):
     #Initialize buttons
     buttons = []
 
-    for new_button in bs_settings.buttons_settings.keys():
-        value = bs_settings.buttons_settings.get(new_button)\
+    for button in bs_settings.buttons_settings.keys():
+        value = bs_settings.buttons_settings.get(button)
         #Initialize new Button object
-        new_button = Button(bs_settings, screen, value[5],  18)
+        new_button = Button(bs_settings, screen)#, value[5],  18)
         """Define unique values of the new button"""
-        new_button.rect.centerx = value[0]
-        new_button.rect.y = value[1]
-        new_button.msg = value[2]
+        #Give image to the ship
+        new_button.get_image(value[2]) 
+        new_button.rect.x = value[0]
+        new_button.rect.y = value[1] 
         new_button.ship_size = value[3]
         new_button.amount_of_ships = value[4]
+        new_button.prep_text(button)
         #Add the new button to buttons list
         buttons.append(new_button)
 
     return buttons
             
-            
+
+def end_game_check(bs_settings, screen, buttons, layout):
+    """Check if all ships of one side are destoyed and ending game"""
+    #Check if all ships are placed
+    if buttons[0].amount_of_ships == 0 and buttons[1].amount_of_ships == 0 and buttons[2].amount_of_ships == 0 and buttons[3].amount_of_ships == 0:
+        for i in range(2):
+            if not bs_settings.ships[i]:
+                bs_settings.end_game = 1
+                layout.prep_msg(bs_settings.end_msg[i])
+
+
+
+
+    
+
+
+
+def prep_text(bs_settings, screen, msg, centry):
+    screen = screen
+    screen_rect = screen.get_rect()
+
+    font = pygame.font.Font(os.path.join('images', 'freesansbold.ttf'), 13)
+    textimage = font.render(str(msg), True,
+                            (30, 30, 30))
+
+    text_rect = textimage.get_rect()
+    text_rect.centery = centry
+    text_rect.left = 485
+    screen.blit(textimage, text_rect)
+                
+
+
+
+
+
+
+
+
             
             
     
