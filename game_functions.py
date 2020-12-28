@@ -80,7 +80,7 @@ def shoot_action(bs_settings, screen, ai_fields, ships, mouse_x, mouse_y):
                     one_ship.remove(ai_fields[m][j])
                     #If ship has no fileds execute surround_ship function
                     if len(one_ship) <= 4:
-                        surround_ship(bs_settings, screen, ai_fields, one_ship[0], one_ship[1], one_ship[3], one_ship[2], 5, (252,0,13))
+                        surround_ship(bs_settings, screen, ai_fields, one_ship[0], one_ship[1], one_ship[3], one_ship[2], 2, 5, (252,0,13))
                         #Delete killed lists from ships' list
                         ships.remove(one_ship)
                     
@@ -175,7 +175,7 @@ def draw_ship(bs_settings, screen, fields, buttons, ships, i, mouse_x, mouse_y, 
 
                 """Surround ship for escaping collisions"""
                 if bs_settings.permission == 1:
-                    surround_ship(bs_settings, screen, fields, buttons[i].ship_size, bs_settings.direction_of_ship_drawing, j, m)
+                    surround_ship(bs_settings, screen, fields, buttons[i].ship_size, bs_settings.direction_of_ship_drawing, j, m, 1)
 
                 
                 buttons[i].amount_of_ships -= 1
@@ -183,7 +183,7 @@ def draw_ship(bs_settings, screen, fields, buttons, ships, i, mouse_x, mouse_y, 
     #Append to the ships list size and fields of new ship 
     ships.append(new_ship)
 
-def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_drawing, j, m, border_thickness = 1, field_color = (0,0,0)):
+def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_drawing, j, m, status, border_thickness = 1, field_color = (0,0,0)):
     """Surround ship by non-active fileds for ships cant be placed close to each other.
         Function get postion of the first field of the ship, size and direction and surround ship according to them 
     """
@@ -196,7 +196,7 @@ def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_draw
                     if j+iteration>= 0 and m+jteration >= 0:
                         fields[m+jteration][j+iteration].border_thickness = border_thickness
                         fields[m+jteration][j+iteration].field_color = field_color
-                        fields[m+jteration][j+iteration].status = 1
+                        fields[m+jteration][j+iteration].status = status
                 except IndexError:
                     break
         #Surround by y coordinate
@@ -206,7 +206,7 @@ def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_draw
                 if j+iteration>= 0:
                     fields[m][j+iteration].border_thickness = border_thickness
                     fields[m][j+iteration].field_color = field_color
-                    fields[m][j+iteration].status = 1
+                    fields[m][j+iteration].status = status
             except IndexError:
                     break
 
@@ -219,7 +219,7 @@ def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_draw
                     if m+iteration >= 0 and j+jteration >= 0:
                         fields[m+iteration][j+jteration].border_thickness = border_thickness
                         fields[m+iteration][j+jteration].field_color = field_color
-                        fields[m+iteration][j+jteration].status = 1
+                        fields[m+iteration][j+jteration].status = status
                 except IndexError:
                     break
         #Surround by x coordinate
@@ -229,7 +229,7 @@ def surround_ship(bs_settings, screen, fields, ship_size, direction_of_ship_draw
                 if m+iteration >= 0:
                     fields[m+iteration][j].border_thickness = border_thickness
                     fields[m+iteration][j].field_color = field_color
-                    fields[m+iteration][j].status = 1
+                    fields[m+iteration][j].status = status
             except IndexError:
                     break
 
